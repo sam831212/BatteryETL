@@ -1,0 +1,78 @@
+graph TD
+    subgraph Frontend["Frontend (Streamlit)"]
+        SA[streamlit_app.py]
+        subgraph UI[app/ui]
+            UP[upload.py]
+            DS[dashboard.py]
+            SS[step_selection.py]
+            PV[preview.py]
+            ST[settings.py]
+        end
+    end
+
+    subgraph Backend["Backend (Python)"]
+        subgraph ETL[app/etl]
+            EX[extraction.py]
+            TR[transformation.py]
+            VL[validation.py]
+        end
+
+        subgraph VIZ[app/visualization]
+            BP[battery_plots.py]
+            VU[utils.py]
+        end
+
+        subgraph Models[app/models]
+            DB[database.py]
+            subgraph Entities
+                CE((Cell))
+                ME((Machine))
+                EE((Experiment))
+                SE((Step))
+                DE((Detail))
+                SV((SavedView))
+            end
+        end
+
+        subgraph Utils[app/utils]
+            CF[config.py]
+            DU[database.py]
+            MG[migration.py]
+            TF[temp_files.py]
+        end
+    end
+
+    subgraph Storage["Data Storage"]
+        PG[(PostgreSQL DB)]
+        CSV[("CSV Files")]
+    end
+
+    %% Data Flow
+    CSV -->|Upload| UP
+    UP -->|Process| EX
+    EX -->|Transform| TR
+    TR -->|Validate| VL
+    VL -->|Preview| PV
+    PV -->|Visualize| BP
+    DS -->|Query| DB
+    DS -->|Plot| BP
+    SS -->|Select| DB
+    DB <-->|Store/Retrieve| PG
+
+    %% Entity Relationships
+    CE -->|1:N| EE
+    ME -->|1:N| EE
+    EE -->|1:N| SE
+    SE -->|1:N| DE
+    
+    %% Utils Usage
+    CF -.->|Config| Backend
+    DU -.->|DB Utils| Backend
+    MG -.->|Migrations| DB
+    
+    classDef storage fill:#f9f,stroke:#333,stroke-width:2px
+    classDef frontend fill:#bbf,stroke:#333,stroke-width:2px
+    classDef backend fill:#bfb,stroke:#333,stroke-width:2px
+    class Storage storage
+    class Frontend frontend
+    class Backend backend
